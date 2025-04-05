@@ -35,7 +35,8 @@ def load_data():
             for frame in range(SEQUENCE_LENGTH):
                 frame_data = hand_landmarks[hand_landmarks['frame'] == frame]
                 frame_data = frame_data.sort_values(by='landmark_index')
-                coords = frame_data[['x', 'y', 'z']].values.flatten()
+                #coords = frame_data[['x', 'y', 'z']].values.flatten()
+                coords = frame_data[['x', 'y']].values.flatten()
                 features.extend(coords)
 
             if len(features) == NUM_LANDMARKS * 3 * SEQUENCE_LENGTH:
