@@ -59,9 +59,13 @@ while cap.isOpened():
 
             # Smoothen prediction
             recent_predictions.append(prediction)
-            smoothed = Counter(recent_predictions).most_common(1)[0][0]
 
-            prediction_text = f"Sign: {smoothed}"
+            # Only show if last 3 predictions were all the same
+            if len(recent_predictions) >= 3 and all(p == recent_predictions[0] for p in list(recent_predictions)[-3:]):
+                prediction_text = f"Sign: {prediction}"
+            else:
+                prediction_text = ""
+            
             cv2.putText(frame_output, prediction_text, (20, 40), cv2.FONT_HERSHEY_SIMPLEX,
                         1, (0, 255, 0), 2, cv2.LINE_AA)
 
