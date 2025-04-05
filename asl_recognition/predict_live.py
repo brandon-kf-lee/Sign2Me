@@ -6,7 +6,7 @@ from collections import deque, Counter
 import pandas as pd
 
 # CONFIG
-MODEL_PATH = "training/asl_knn_model_v2.pkl"
+MODEL_PATH = "training/asl_knn_model_a_f.pkl"
 SEQUENCE_LENGTH = 10
 NUM_LANDMARKS = 21
 
@@ -43,11 +43,15 @@ while cap.isOpened():
         hand_landmarks = results.multi_hand_landmarks[0]
         mp_draw.draw_landmarks(frame_output, hand_landmarks, mp_hands.HAND_CONNECTIONS)
 
-        # Extract 21 (x, y) landmarks
+        # Extract 21 (x, y) landmarks, normalise to the wrist (like when training)
+        wrist = hand_landmarks.landmark[0]
         landmarks = []
-        for lm in hand_landmarks.landmark:
-            landmarks.extend([lm.x, lm.y])
-
+        for i in range(NUM_LANDMARKS):
+            lm = hand_landmarks.landmark[i]
+            norm_x = lm.x - wrist.x
+            norm_y = lm.y - wrist.y
+            landmarks.extend([norm_x, norm_y])
+        
         sequence.append(landmarks)
 
         if len(sequence) == SEQUENCE_LENGTH:
