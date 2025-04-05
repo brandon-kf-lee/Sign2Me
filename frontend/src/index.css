@@ -1,0 +1,13 @@
+/* Set Open Sans as the default body font */
+body {
+  font-family: 'Open Sans', sans-serif;
+}
+
+/* League Spartan for logo heading only */
+.font-logo {
+  font-family: 'League Spartan', sans-serif;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
