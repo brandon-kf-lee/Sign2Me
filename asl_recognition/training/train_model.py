@@ -12,7 +12,7 @@ import pyarrow.parquet as pq
 DATA_DIR = "../data/custom"
 SEQUENCE_LENGTH = 10
 NUM_LANDMARKS = 21
-MODEL_PATH = "../data/asl_knn_model_v1.pkl"
+MODEL_PATH = "asl_knn_model_v2.pkl"
 
 def load_data():
     X, y = [], []
@@ -39,7 +39,7 @@ def load_data():
                 coords = frame_data[['x', 'y']].values.flatten()
                 features.extend(coords)
 
-            if len(features) == NUM_LANDMARKS * 3 * SEQUENCE_LENGTH:
+            if len(features) == NUM_LANDMARKS * 2 * SEQUENCE_LENGTH:
                 X.append(features)
                 y.append(sign_name)
 
