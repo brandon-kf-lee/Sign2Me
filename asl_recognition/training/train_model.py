@@ -12,7 +12,7 @@ import pyarrow.parquet as pq
 DATA_DIR = "../data/custom"
 SEQUENCE_LENGTH = 10
 NUM_LANDMARKS = 21
-MODEL_PATH = "asl_knn_model_v2.pkl"
+MODEL_PATH = "asl_knn_model_a_y_none.pkl"
 
 def load_data():
     X, y = [], []

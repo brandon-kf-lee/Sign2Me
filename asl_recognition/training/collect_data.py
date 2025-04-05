@@ -20,6 +20,7 @@ mp_draw = mp.solutions.drawing_utils
 
 # Webcam
 cap = cv2.VideoCapture(0)
+num_captured = 0
 
 print(f"Capturing data for sign '{SIGN}' — press 's' to record a sequence, 'q' to quit.")
 
@@ -57,6 +58,7 @@ while cap.isOpened():
     key = cv2.waitKey(1) & 0xFF
 
     if key == ord('s'):
+        num_captured += 1
         print(f"Recording {SEQUENCE_LENGTH} frames...")
         sequence = []
         frames_collected = 0
@@ -78,6 +80,7 @@ while cap.isOpened():
             if results.multi_hand_landmarks:
                 mp_draw.draw_landmarks(annotated, hand_landmarks, mp_hands.HAND_CONNECTIONS)
                 
+            cv2.putText(annotated, f"Saved Samples: {num_captured}", (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
             cv2.imshow("Collecting Sign Data", annotated)
             cv2.waitKey(1)
 
