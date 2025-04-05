@@ -6,7 +6,7 @@ from collections import deque, Counter
 import pandas as pd
 
 # CONFIG
-MODEL_PATH = "training/asl_knn_model_a_f.pkl"
+MODEL_PATH = "training/asl_knn_model_final.pkl"
 SEQUENCE_LENGTH = 10
 NUM_LANDMARKS = 21
 
@@ -61,12 +61,25 @@ while cap.isOpened():
             # Make prediction
             prediction = model.predict(input_data)[0]
 
-            # Smoothen prediction
-            recent_predictions.append(prediction)
+            # Get top two predictions
+            probs = model.predict_proba(input_data)[0]
+            top2_indices = np.argsort(probs)[-2:][::-1]  # Top 2
+            top2_labels = [model.classes_[i] for i in top2_indices]
+            top2_conf = [probs[i] for i in top2_indices]
 
-            # Only show if last 3 predictions were all the same
+            # Smoothen prediction, only show if last 3 predictions were all the same
+            recent_predictions.append(prediction)
             if len(recent_predictions) >= 3 and all(p == recent_predictions[0] for p in list(recent_predictions)[-3:]):
                 prediction_text = f"Sign: {prediction}"
+
+                # If top 2 are close in probability, offer guidance
+                if top2_conf[0] - top2_conf[1] < 0.20:
+                    prediction_text += f" maybe {top2_labels[1]}?"
+
+                # If top 2 are either R, U, or V, offer guidance
+                if set([top2_labels[0], top2_labels[1]]) <= {"R", "U", "V"}:
+                    prediction_text += " (Try adjusting finger spacing!)"
+
             else:
                 prediction_text = ""
             
