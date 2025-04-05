@@ -10,7 +10,7 @@ from uuid import uuid4
 # CONFIG
 SIGN = input("Enter sign label (e.g. A, B, hello): ").strip()
 SEQUENCE_LENGTH = 10  # frames per sequence
-SAVE_DIR = os.path.join("train_landmark_files", "custom", SIGN)
+SAVE_DIR = os.path.join("../data", "custom", SIGN)
 os.makedirs(SAVE_DIR, exist_ok=True)
 
 # MediaPipe setup

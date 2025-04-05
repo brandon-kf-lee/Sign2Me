@@ -6,7 +6,7 @@ from collections import deque, Counter
 import pandas as pd
 
 # CONFIG
-MODEL_PATH = "asl_knn_model.pkl"
+MODEL_PATH = "data/asl_knn_model_v1.pkl"
 SEQUENCE_LENGTH = 10
 NUM_LANDMARKS = 21
 
