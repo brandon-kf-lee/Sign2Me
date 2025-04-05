@@ -26,6 +26,7 @@ print(f"Capturing data for sign '{SIGN}' — press 's' to record a sequence, 'q'
 sequence_data = []
 
 def extract_landmarks(landmarks, frame_idx):
+    wrist = landmarks.landmark[0]
     rows = []
     for i, lm in enumerate(landmarks.landmark):
         rows.append({
@@ -33,9 +34,9 @@ def extract_landmarks(landmarks, frame_idx):
             "row_id": "".join((str(frame_idx), "-", "right_hand", "-", str(i))), #TODO: detect between left and right hands?
             "type": "right_hand",  # or "left_hand" if needed
             "landmark_index": i,
-            "x": lm.x,
-            "y": lm.y,
-            "z": lm.z
+            "x": lm.x - wrist.x, # Normalise position of landmarks based on the wrist. Will keep landmark positions consistent
+            "y": lm.y - wrist.y,
+            #"z": lm.z
         })
     return rows
 
