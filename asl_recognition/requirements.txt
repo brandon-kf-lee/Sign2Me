@@ -2,6 +2,7 @@ Flask
 flask-cors
 numpy
 joblib
+scikit-learn
 google-generativeai
 mediapipe
 protobuf>=4.25.3,<5.0.0
