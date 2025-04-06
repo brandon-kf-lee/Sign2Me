@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import LandingPage from "./LandingPage";
 import LearnPage from "./LearnPage";
 import PracticePage from "./PracticePage";
-// import ProfilePage from "./ProfilePage"; ← if you have one later
+import ProfilePage from "./ProfilePage";
 
 function App() {
   return (
