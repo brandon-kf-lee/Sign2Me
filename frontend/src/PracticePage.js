@@ -64,6 +64,7 @@ function PracticePage() {
 
     hands.onResults((results) => {
       if (!results.multiHandLandmarks || results.multiHandLandmarks.length === 0) return;
+      if (isLocked) return; // Prevent updating while locked
 
       const landmarks = results.multiHandLandmarks[0];
       const wrist = landmarks[0];
