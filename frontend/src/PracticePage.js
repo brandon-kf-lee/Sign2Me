@@ -20,18 +20,21 @@ function PracticePage() {
   // Send normalised landmark data to backend to receive prediction
   const processPrediction = async (normalized) => {
     try {
-      const response = await fetch("https://sign2me-production.up.railway.app/predict", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ landmarks: normalized }),
-      });
+      if (!isLocked) {
+        const response = await fetch("https://sign2me-production.up.railway.app/predict", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ landmarks: normalized }),
+        });
 
-      const prediction = await response.json();
+        const prediction = await response.json();
 
-      if (!isLocked && prediction.sign) {
-        setPredictedSign(prediction.sign);
-      }
-    } catch (err) {
+        if (!isLocked && prediction.sign) {
+          setPredictedSign(prediction.sign);
+        }
+      } 
+    }
+    catch (err) {
       console.error("Prediction error:", err);
     }
   };
@@ -44,6 +47,8 @@ function PracticePage() {
       setIsLocked(true);
       setResult("correct");
       setGeminiFeedback("✅ Great job! That's the right sign.");
+      setPredictedSign(predictedSign); // freeze correct value
+
     } else {
       setResult("incorrect");
       setGeminiFeedback("🤔 Try adjusting your fingers and try again.");
