@@ -75,8 +75,9 @@ function PracticePage() {
       processPrediction(normalized);
     });
 
+    let camera;
     if (videoRef.current) {
-      const camera = new Camera(videoRef.current, {
+      camera = new Camera(videoRef.current, {
         onFrame: async () => {
           await hands.send({ image: videoRef.current });
         },
@@ -85,6 +86,7 @@ function PracticePage() {
       });
       camera.start();
     }
+    
     // Cleanup when component unmounts
     return () => {
       if (camera) {
