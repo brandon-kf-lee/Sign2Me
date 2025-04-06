@@ -19,7 +19,7 @@ if os.environ.get("RAILWAY_ENVIRONMENT") is None:
     load_dotenv()
 
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-gemini_model = genai.GenerativeModel("gemini-pro")
+gemini_model = genai.GenerativeModel(model_name="models/gemini-1.5-flash-latest")
 
 for m in genai.list_models():
     print(f"{m.name} ")
