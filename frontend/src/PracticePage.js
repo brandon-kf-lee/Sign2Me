@@ -24,13 +24,14 @@ function PracticePage() {
         const response = await fetch("https://sign2me-production.up.railway.app/predict", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ landmarks: normalized }),
+          body: JSON.stringify({ landmarks: normalized, target: currentLetter }),
         });
 
         const prediction = await response.json();
 
         if (!isLocked && prediction.sign) {
           setPredictedSign(prediction.sign);
+          setGeminiFeedback(prediction.feedback || "Keep practicing!");
         }
       } 
     }
