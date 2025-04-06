@@ -38,11 +38,13 @@ function PracticePage() {
 
   // Check if prediction is correct
   useEffect(() => {
-    if (!isLocked && predictedSign === currentLetter) {
+    if(isLocked) return; // Prevent running after locked
+
+    if (predictedSign === currentLetter) {
       setIsLocked(true);
       setResult("correct");
       setGeminiFeedback("✅ Great job! That's the right sign.");
-    } else if (!isLocked) {
+    } else {
       setResult("incorrect");
       setGeminiFeedback("🤔 Try adjusting your fingers and try again.");
     }
