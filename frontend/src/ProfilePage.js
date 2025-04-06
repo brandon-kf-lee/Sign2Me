@@ -17,7 +17,7 @@ function ProfilePage() {
   return (
     <div
     className="min-h-screen bg-cover bg-center text-black"
-    style={{ backgroundImage: "url('/path/to/aura-bg.png')" }} // ← same image path as LandingPage
+    style={{ backgroundImage: "url('/images/aura-bg.png')" }}
     >
       {/* Nav Bar */}
       <nav className="bg-gray-100/60 backdrop-blur-md text-black">
