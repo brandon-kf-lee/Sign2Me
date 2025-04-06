@@ -17,6 +17,33 @@ function PracticePage() {
     return alphabet[randomIndex];
   };
 
+  const processPrediction = async (normalized) => {
+    try {
+      const res = await fetch("https://sign2me-production.up.railway.app/predict", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ landmarks: normalized }),
+      });
+
+      const data = await res.json();
+
+      if (data.sign) {
+        setPredictedSign(data.sign);
+
+        if (!isLocked && data.sign === currentLetter) {
+          setIsLocked(true);
+          setResult("correct");
+          setGeminiFeedback("✅ Great job! That's the right sign.");
+        } else if (!isLocked) {
+          setResult("incorrect");
+          setGeminiFeedback(data.feedback || "🤔 Try adjusting your fingers and try again.");
+        }
+      }
+    } catch (err) {
+      console.error("Prediction error:", err);
+    }
+  };
+
   useEffect(() => {
     const hands = new Hands({
       locateFile: (file) =>
@@ -30,7 +57,18 @@ function PracticePage() {
       minTrackingConfidence: 0.7,
     });
 
-    hands.onResults(onResults);
+    hands.onResults((results) => {
+      if (!results.multiHandLandmarks || results.multiHandLandmarks.length === 0) return;
+
+      const landmarks = results.multiHandLandmarks[0];
+      const wrist = landmarks[0];
+      const normalized = landmarks.flatMap((lm) => [
+        lm.x - wrist.x,
+        lm.y - wrist.y
+      ]);
+
+      processPrediction(normalized);
+    });
 
     if (videoRef.current) {
       const camera = new Camera(videoRef.current, {
@@ -42,42 +80,7 @@ function PracticePage() {
       });
       camera.start();
     }
-  }, []);
-
-  const onResults = async (results) => {
-    if (!results.multiHandLandmarks || results.multiHandLandmarks.length === 0 || isLocked) return;
-
-    const landmarks = results.multiHandLandmarks[0];
-    const wrist = landmarks[0];
-    const normalized = landmarks.flatMap((lm) => [
-      lm.x - wrist.x,
-      lm.y - wrist.y
-    ]);
-
-    try {
-      const res = await fetch("https://sign2me-production.up.railway.app/predict", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ landmarks: normalized }),
-      });
-
-      const data = await res.json();
-
-      if (data.sign) {
-        setPredictedSign(data.sign);
-        if (data.sign === currentLetter) {
-          setIsLocked(true);
-          setResult("correct");
-          setGeminiFeedback("✅ Great job! That's the right sign.");
-        } else {
-          setResult("incorrect");
-          setGeminiFeedback(data.feedback || "🤔 Try adjusting your fingers and try again.");
-        }
-      }
-    } catch (err) {
-      console.error("Prediction error:", err);
-    }
-  };
+  }, [isLocked]);
 
   return (
     <div
@@ -139,10 +142,12 @@ function PracticePage() {
                   <button
                     className="mt-2 px-4 py-1 bg-gray-200 rounded-md hover:bg-gray-300 text-sm font-semibold"
                     onClick={() => {
-                      setCurrentLetter(getRandomLetter());
+                      const next = getRandomLetter();
+                      setCurrentLetter(next);
                       setIsLocked(false);
                       setResult("");
                       setGeminiFeedback("Great form! Keep your hand steady.");
+                      setPredictedSign("...");
                     }}
                   >
                     NEXT
