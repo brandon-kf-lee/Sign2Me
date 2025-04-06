@@ -21,6 +21,8 @@ if os.environ.get("RAILWAY_ENVIRONMENT") is None:
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 gemini_model = genai.GenerativeModel("gemini-pro")
 
+for m in genai.list_models():
+    print(f"{m.name} | supports `generate_content`: {m.supports_generate_content}")
 
 # Load trained model
 model = joblib.load(MODEL_PATH)
