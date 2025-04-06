@@ -140,7 +140,7 @@ function PracticePage() {
           </h2>
 
           <div className="relative border-4 border-purple-400 rounded-xl overflow-hidden">
-            <video ref={videoRef} autoPlay playsInline className="w-full h-auto rounded-xl" />
+            <video ref={videoRef} autoPlay playsInline className="w-full h-auto rounded-xl transform scale-x-[-1]" />
 
             {/* Gemini Feedback Popup (top-left) */}
             <div className="absolute top-4 left-4">
