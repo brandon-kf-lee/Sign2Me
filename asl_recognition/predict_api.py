@@ -22,7 +22,7 @@ genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 gemini_model = genai.GenerativeModel("gemini-pro")
 
 for m in genai.list_models():
-    print(f"{m.name} | supports `generate_content`: {m.supports_generate_content}")
+    print(f"{m.name} ")
 
 # Load trained model
 model = joblib.load(MODEL_PATH)
