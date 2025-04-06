@@ -163,7 +163,6 @@ function PracticePage() {
                 <p className="font-bold text-sm text-black">
                   Predicted: {predictedSign}
                 </p>
-                <p className="text-xs text-gray-600 mt-1">{geminiFeedback}</p>
 
                 {/* Only show NEXT if correct */}
                 {isLocked && (

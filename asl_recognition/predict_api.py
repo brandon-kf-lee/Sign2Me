@@ -72,17 +72,6 @@ def predict():
         final_prediction = prediction
         confidence = f"{top2_conf[0] * 100:.0f}%"
 
-        # feedback = ""
-
-        # # Confidence hint if close
-        # if top2_conf[0] - top2_conf[1] < 0.20:
-        #     feedback += f" maybe {top2_labels[1]}? "
-
-        # # Special guidance for common confusion
-        # if set([top2_labels[0], top2_labels[1]]) <= {"R", "U", "V"}:
-        #     feedback += "(Try adjusting finger spacing!)"
-
-
         # Gemini Prompt: dynamically build feedback based on confusion
         user_prompt = (
             f"I am a friendly teacher teaching someone ASL letters and words. They tried to sign the letter '{prediction}', "
@@ -91,10 +80,12 @@ def predict():
             f"The target letter is '{target_letter}'. Use this data to give specific advice, particularly for letter signs that may look similar. "
             f"Can you give them one quick tip to improve their sign for the letter '{target_letter}'?"
         )
-
         gemini_response = model.generate_content(user_prompt)
         gemini_feedback = gemini_response.text.strip()
 
+        # DEBUG
+        print("📡 Gemini prompt sent:", user_prompt)
+        print("🤖 Gemini responded with:", gemini_feedback)
 
         return jsonify({
             "sign": final_prediction,
@@ -113,6 +104,15 @@ def predict():
             "top2": [],
             "feedback": "Not enough agreement in predictions"
         })
+
+@app.route("/test-gemini")
+def test_gemini():
+    prompt = "Give a quick tip for learning the ASL letter 'A'."
+    try:
+        response = model.generate_content(prompt)
+        return jsonify({"response": response.text})
+    except Exception as e:
+        return jsonify({"error": str(e)})
 
 # Dynamic port for Railway
 if __name__ == "__main__":
