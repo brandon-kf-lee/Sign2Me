@@ -28,7 +28,7 @@ function PracticePage() {
 
       const prediction = await response.json();
 
-      if (prediction.sign) {
+      if (!isLocked && prediction.sign) {
         setPredictedSign(prediction.sign);
       }
     } catch (err) {
@@ -85,7 +85,13 @@ function PracticePage() {
       });
       camera.start();
     }
-  }, [isLocked]);
+    // Cleanup when component unmounts
+    return () => {
+      if (camera) {
+        camera.stop();
+      }
+    };
+  }, []);
 
   return (
     <div
@@ -157,7 +163,6 @@ function PracticePage() {
                       setIsLocked(false);
                       setResult("");
                       setGeminiFeedback("Great form! Keep your hand steady.");
-                      //setPredictedSign("...");
                     }}
                   >
                     NEXT
