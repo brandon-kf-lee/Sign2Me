@@ -1,9 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { Hands } from "@mediapipe/hands";
+import { Camera } from "@mediapipe/camera_utils";
 
 function PracticePage() {
+  const videoRef = useRef(null);
   const [currentLetter, setCurrentLetter] = useState("A");
-  const [result, setResult] = useState(""); // correct, incorrect, or ""
+  const [result, setResult] = useState("");
   const [predictedSign, setPredictedSign] = useState("...");
   const [geminiFeedback, setGeminiFeedback] = useState("Great form! Keep your hand steady.");
   const [isLocked, setIsLocked] = useState(false);
@@ -14,44 +17,73 @@ function PracticePage() {
     return alphabet[randomIndex];
   };
 
-  // 🔁 Fetch prediction from Flask
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (!isLocked) {
-        fetch("http://localhost:5050/prediction")
-          .then((res) => res.json())
-          .then((data) => {
-            if (data.sign) {
-              setPredictedSign(data.sign);
-            }
-          })
-          .catch((err) => {
-            console.error("Error fetching prediction:", err);
-          });
-      }
-    }, 1000);
-  
-    return () => clearInterval(interval);
-  }, [isLocked]); // 🔁 Watch for changes to isLocked
+    const hands = new Hands({
+      locateFile: (file) =>
+        `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`,
+    });
 
-  // ✅ Check if prediction is correct
-  useEffect(() => {
-    if (!isLocked && predictedSign === currentLetter) {
-      setIsLocked(true);
-      setResult("correct");
-      setGeminiFeedback("✅ Great job! That's the right sign.");
-    } else if (!isLocked) {
-      setResult("incorrect");
-      setGeminiFeedback("🤔 Try adjusting your fingers and try again.");
+    hands.setOptions({
+      maxNumHands: 1,
+      modelComplexity: 1,
+      minDetectionConfidence: 0.7,
+      minTrackingConfidence: 0.7,
+    });
+
+    hands.onResults(onResults);
+
+    if (videoRef.current) {
+      const camera = new Camera(videoRef.current, {
+        onFrame: async () => {
+          await hands.send({ image: videoRef.current });
+        },
+        width: 640,
+        height: 480,
+      });
+      camera.start();
     }
-  }, [predictedSign, currentLetter, isLocked]);
+  }, []);
+
+  const onResults = async (results) => {
+    if (!results.multiHandLandmarks || results.multiHandLandmarks.length === 0 || isLocked) return;
+
+    const landmarks = results.multiHandLandmarks[0];
+    const wrist = landmarks[0];
+    const normalized = landmarks.flatMap((lm) => [
+      lm.x - wrist.x,
+      lm.y - wrist.y
+    ]);
+
+    try {
+      const res = await fetch("https://sign2me-production.up.railway.app/predict", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ landmarks: normalized }),
+      });
+
+      const data = await res.json();
+
+      if (data.sign) {
+        setPredictedSign(data.sign);
+        if (data.sign === currentLetter) {
+          setIsLocked(true);
+          setResult("correct");
+          setGeminiFeedback("✅ Great job! That's the right sign.");
+        } else {
+          setResult("incorrect");
+          setGeminiFeedback(data.feedback || "🤔 Try adjusting your fingers and try again.");
+        }
+      }
+    } catch (err) {
+      console.error("Prediction error:", err);
+    }
+  };
 
   return (
     <div
       className="min-h-screen bg-center bg-cover bg-no-repeat"
       style={{ backgroundImage: "url('/images/aura-practice.png')" }}
     >
-      {/* Nav Bar */}
       <nav className="w-full bg-gray-100/60 backdrop-blur-md text-black">
         <div className="max-w-5xl mx-auto px-8 md:px-16 py-4 flex items-center justify-between">
           <span className="font-logo font-bold text-xl">Sign2Me</span>
@@ -64,7 +96,6 @@ function PracticePage() {
         </div>
       </nav>
 
-      {/* Page Content */}
       <div className="px-8 py-16">
         <section className="max-w-4xl mx-auto mb-12">
           <h1 className="text-5xl font-logo font-bold text-gray-900 mb-4">Practice</h1>
@@ -76,20 +107,14 @@ function PracticePage() {
           </div>
         </section>
 
-        {/* Practice Section */}
         <section className="max-w-4xl mx-auto bg-white bg-opacity-70 backdrop-blur-lg p-6 rounded-xl shadow-md space-y-6">
           <h2 className="text-2xl font-bold text-gray-900">
             Sign the following: {currentLetter}
           </h2>
 
           <div className="relative border-4 border-purple-400 rounded-xl overflow-hidden">
-            <img
-              src="http://localhost:5050/video_feed"
-              alt="Live webcam feed"
-              className="w-full h-auto"
-            />
+            <video ref={videoRef} autoPlay playsInline className="w-full h-auto rounded-xl" />
 
-            {/* Gemini Feedback Popup (top-left) */}
             <div className="absolute top-4 left-4">
               <div className="bg-white p-3 rounded-xl shadow-md border-2 border-blue-400 w-64">
                 <p className="font-bold text-sm text-blue-600">Gemini Feedback</p>
@@ -97,7 +122,6 @@ function PracticePage() {
               </div>
             </div>
 
-            {/* Prediction Box (bottom-right) */}
             <div className="absolute bottom-4 right-4">
               <div className={`bg-white p-3 rounded-xl shadow-md border-2 ${
                 result === "correct"
@@ -111,7 +135,6 @@ function PracticePage() {
                 </p>
                 <p className="text-xs text-gray-600 mt-1">{geminiFeedback}</p>
 
-                {/* Only show NEXT if correct */}
                 {isLocked && (
                   <button
                     className="mt-2 px-4 py-1 bg-gray-200 rounded-md hover:bg-gray-300 text-sm font-semibold"
