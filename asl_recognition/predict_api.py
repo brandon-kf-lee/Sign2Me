@@ -19,7 +19,7 @@ if os.environ.get("RAILWAY_ENVIRONMENT") is None:
     load_dotenv()
 
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-model = genai.GenerativeModel("gemini-pro")
+gemini_model = genai.GenerativeModel("gemini-pro")
 
 
 # Load trained model
@@ -80,7 +80,7 @@ def predict():
             f"The target letter is '{target_letter}'. Use this data to give specific advice, particularly for letter signs that may look similar. "
             f"Can you give them one quick tip to improve their sign for the letter '{target_letter}'?"
         )
-        gemini_response = model.generate_content(user_prompt)
+        gemini_response = gemini_model.generate_content(user_prompt)
         gemini_feedback = gemini_response.text.strip()
 
         # DEBUG
@@ -109,7 +109,7 @@ def predict():
 def test_gemini():
     prompt = "Give a quick tip for learning the ASL letter 'A'."
     try:
-        response = model.generate_content(prompt)
+        response = gemini_model.generate_content(prompt)
         return jsonify({"response": response.text})
     except Exception as e:
         return jsonify({"error": str(e)})
