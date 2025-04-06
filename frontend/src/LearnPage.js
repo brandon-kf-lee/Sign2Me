@@ -43,7 +43,7 @@ function LearnPage() {
               className="relative bg-white bg-opacity-60 rounded-xl shadow-md p-4 hover:scale-105 transition transform cursor-pointer group"
             >
               <img
-                src={`/asl/${letter}.png`}
+                src={`ASL/${letter}.png`}
                 alt={`ASL ${letter}`}
                 className="w-full h-auto mb-2"
               />

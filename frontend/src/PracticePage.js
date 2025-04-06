@@ -1,18 +1,50 @@
-// IMPORTS
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
 function PracticePage() {
   const [currentLetter, setCurrentLetter] = useState("A");
-  const [result, setResult] = useState("correct"); // TEMP: hardcoded for now
-  const [predictedSign, setPredictedSign] = useState("A");
+  const [result, setResult] = useState(""); // correct, incorrect, or ""
+  const [predictedSign, setPredictedSign] = useState("...");
   const [geminiFeedback, setGeminiFeedback] = useState("Great form! Keep your hand steady.");
+  const [isLocked, setIsLocked] = useState(false);
 
   const getRandomLetter = () => {
     const alphabet = "ABCDEFGHIKLMNOPQRSTUVWXY";
     const randomIndex = Math.floor(Math.random() * alphabet.length);
     return alphabet[randomIndex];
   };
+
+  // 🔁 Fetch prediction from Flask
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!isLocked) {
+        fetch("http://localhost:5050/prediction")
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.sign) {
+              setPredictedSign(data.sign);
+            }
+          })
+          .catch((err) => {
+            console.error("Error fetching prediction:", err);
+          });
+      }
+    }, 1000);
+  
+    return () => clearInterval(interval);
+  }, [isLocked]); // 🔁 Watch for changes to isLocked
+
+  // ✅ Check if prediction is correct
+  useEffect(() => {
+    if (!isLocked && predictedSign === currentLetter) {
+      setIsLocked(true);
+      setResult("correct");
+      setGeminiFeedback("✅ Great job! That's the right sign.");
+    } else if (!isLocked) {
+      setResult("incorrect");
+      setGeminiFeedback("🤔 Try adjusting your fingers and try again.");
+    }
+  }, [predictedSign, currentLetter, isLocked]);
 
   return (
     <div
@@ -34,7 +66,6 @@ function PracticePage() {
 
       {/* Page Content */}
       <div className="px-8 py-16">
-        {/* Header Section */}
         <section className="max-w-4xl mx-auto mb-12">
           <h1 className="text-5xl font-logo font-bold text-gray-900 mb-4">Practice</h1>
           <div className="bg-white bg-opacity-70 backdrop-blur-lg p-6 rounded-xl shadow-md">
@@ -51,13 +82,13 @@ function PracticePage() {
             Sign the following: {currentLetter}
           </h2>
 
-          {/* TEMP IMAGE IN PLACE OF WEBCAM */}
           <div className="relative border-4 border-purple-400 rounded-xl overflow-hidden">
             <img
               src="http://localhost:5050/video_feed"
-              alt="Temporary sign"
+              alt="Live webcam feed"
               className="w-full h-auto"
             />
+
             {/* Gemini Feedback Popup (top-left) */}
             <div className="absolute top-4 left-4">
               <div className="bg-white p-3 rounded-xl shadow-md border-2 border-blue-400 w-64">
@@ -66,19 +97,34 @@ function PracticePage() {
               </div>
             </div>
 
-            {/* Prediction Box */}
+            {/* Prediction Box (bottom-right) */}
             <div className="absolute bottom-4 right-4">
-              <div className="bg-white p-3 rounded-xl shadow-md border-2 border-green-400">
+              <div className={`bg-white p-3 rounded-xl shadow-md border-2 ${
+                result === "correct"
+                  ? "border-green-400"
+                  : result === "incorrect"
+                  ? "border-red-400"
+                  : "border-gray-300"
+              }`}>
                 <p className="font-bold text-sm text-black">
                   Predicted: {predictedSign}
                 </p>
                 <p className="text-xs text-gray-600 mt-1">{geminiFeedback}</p>
-                <button
-                  className="mt-2 px-4 py-1 bg-gray-200 rounded-md hover:bg-gray-300 text-sm font-semibold"
-                  onClick={() => setCurrentLetter(getRandomLetter())}
-                >
-                  NEXT
-                </button>
+
+                {/* Only show NEXT if correct */}
+                {isLocked && (
+                  <button
+                    className="mt-2 px-4 py-1 bg-gray-200 rounded-md hover:bg-gray-300 text-sm font-semibold"
+                    onClick={() => {
+                      setCurrentLetter(getRandomLetter());
+                      setIsLocked(false);
+                      setResult("");
+                      setGeminiFeedback("Great form! Keep your hand steady.");
+                    }}
+                  >
+                    NEXT
+                  </button>
+                )}
               </div>
             </div>
           </div>
