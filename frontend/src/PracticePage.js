@@ -9,7 +9,6 @@ function PracticePage() {
   const [result, setResult] = useState(""); // correct, incorrect, or ""
   const [predictedSign, setPredictedSign] = useState("...");
   const [geminiFeedback, setGeminiFeedback] = useState("Great form! Keep your hand steady.");
-  const [isLocked, setIsLocked] = useState(false);
 
   const getRandomLetter = () => {
     const alphabet = "ABCDEFGHIKLMNOPQRSTUVWXY";
@@ -20,20 +19,18 @@ function PracticePage() {
   // Send normalised landmark data to backend to receive prediction
   const processPrediction = async (normalized) => {
     try {
-      if (!isLocked) {
-        const response = await fetch("https://sign2me-production.up.railway.app/predict", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ landmarks: normalized }),
-        });
+      const response = await fetch("https://sign2me-production.up.railway.app/predict", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ landmarks: normalized }),
+      });
 
-        const prediction = await response.json();
+      const prediction = await response.json();
 
-        if (!isLocked && prediction.sign) {
-          setPredictedSign(prediction.sign);
-        }
-      } 
-    }
+      if (prediction.sign) {
+        setPredictedSign(prediction.sign);
+      }
+    }  
     catch (err) {
       console.error("Prediction error:", err);
     }
@@ -41,19 +38,15 @@ function PracticePage() {
 
   // Check if prediction is correct
   useEffect(() => {
-    if(isLocked) return; // Prevent running after locked
-
     if (predictedSign === currentLetter) {
-      setIsLocked(true);
       setResult("correct");
       setGeminiFeedback("✅ Great job! That's the right sign.");
       setPredictedSign(predictedSign); // freeze correct value
-
     } else {
       setResult("incorrect");
       setGeminiFeedback("🤔 Try adjusting your fingers and try again.");
     }
-  }, [predictedSign, currentLetter, isLocked]);
+  }, [predictedSign, currentLetter]);
 
   // Use MediaPipe to record landmarks, normalise data
   useEffect(() => {
@@ -71,7 +64,6 @@ function PracticePage() {
 
     hands.onResults((results) => {
       if (!results.multiHandLandmarks || results.multiHandLandmarks.length === 0) return;
-      if (isLocked) return; // Prevent updating while locked
 
       const landmarks = results.multiHandLandmarks[0];
       const wrist = landmarks[0];
@@ -165,12 +157,11 @@ function PracticePage() {
                 <p className="text-xs text-gray-600 mt-1">{geminiFeedback}</p>
 
                 {/* Only show NEXT if correct */}
-                {isLocked && (
+                {(
                   <button
                     className="mt-2 px-4 py-1 bg-gray-200 rounded-md hover:bg-gray-300 text-sm font-semibold"
                     onClick={() => {
                       setCurrentLetter(getRandomLetter());
-                      setIsLocked(false);
                       setResult("");
                       setGeminiFeedback("Great form! Keep your hand steady.");
                     }}
