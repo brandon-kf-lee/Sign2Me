@@ -1,3 +1,5 @@
+# Note: Work only when running locally, with local direct webcam access
+
 import cv2
 from flask import Flask, Response
 from flask_cors import CORS

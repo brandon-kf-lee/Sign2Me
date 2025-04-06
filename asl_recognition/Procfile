@@ -1,1 +1,1 @@
-web: python predict_live.py
+web: python predict_api.py
