@@ -9,7 +9,9 @@ function PracticePage() {
   const [result, setResult] = useState(""); // correct, incorrect, or ""
   const [predictedSign, setPredictedSign] = useState("...");
   const [geminiFeedback, setGeminiFeedback] = useState("Great form! Keep your hand steady.");
+  const [feedbackLocked, setFeedbackLocked] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
+  
 
   const getRandomLetter = () => {
     const alphabet = "ABCDEFGHIKLMNOPQRSTUVWXY";
@@ -29,9 +31,18 @@ function PracticePage() {
 
         const prediction = await response.json();
 
-        if (!isLocked && prediction.sign) {
+        if (!isLocked && prediction.sign && !feedbackLocked) {
           setPredictedSign(prediction.sign);
-          setGeminiFeedback(prediction.feedback || "Keep practicing!");
+        
+          if (prediction.feedback) {
+            setGeminiFeedback(prediction.feedback);
+            setFeedbackLocked(true);
+        
+            // Unlock after 10 seconds
+            setTimeout(() => {
+              setFeedbackLocked(false);
+            }, 10000);
+          }
         }
       } 
     }
@@ -50,7 +61,7 @@ function PracticePage() {
       setGeminiFeedback("✅ Great job! That's the right sign.");
       setPredictedSign(predictedSign); // freeze correct value
 
-    } else {
+    } else if (!feedbackLocked) {
       setResult("incorrect");
       setGeminiFeedback("🤔 Try adjusting your fingers and try again.");
     }
