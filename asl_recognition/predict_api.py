@@ -6,9 +6,9 @@ from collections import deque
 import os
 import google.generativeai as genai
 from dotenv import load_dotenv
+import time
 
-
-# Configuration
+# ML Model Configuration
 MODEL_PATH = "training/asl_knn_model_final.pkl"
 SEQUENCE_LENGTH = 10
 NUM_LANDMARKS = 21
@@ -21,8 +21,9 @@ if os.environ.get("RAILWAY_ENVIRONMENT") is None:
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 gemini_model = genai.GenerativeModel(model_name="models/gemini-1.5-flash-latest")
 
-for m in genai.list_models():
-    print(f"{m.name} ")
+# Gemini cooldown settings
+GEMINI_COOLDOWN_SECONDS = 10
+last_gemini_call = 0  # Track time of last Gemini call
 
 # Load trained model
 model = joblib.load(MODEL_PATH)
@@ -80,10 +81,24 @@ def predict():
             f"but our prediction model saw '{final_prediction}' with {confidence} confidence. "
             f"The second most likely guess was '{top2_labels[1]}'. "
             f"The target letter is '{target_letter}'. Use this data to give specific advice, particularly for letter signs that may look similar. "
-            f"Can you give them one quick tip to improve their sign for the letter '{target_letter}'?"
+            f"Can you give them one quick 100 character tip to improve their sign for the letter '{target_letter}'?"
         )
-        gemini_response = gemini_model.generate_content(user_prompt)
-        gemini_feedback = gemini_response.text.strip()
+
+        # Rate limiting to prevent API overloading
+        global last_gemini_call
+        now = time.time()
+
+        # Check cooldown
+        if now - last_gemini_call < GEMINI_COOLDOWN_SECONDS:
+            gemini_feedback = "⏳ Gemini is thinking...keep practicing!"
+        else:
+            try:
+                gemini_response = gemini_model.generate_content(user_prompt)
+                gemini_feedback = gemini_response.text.strip()
+                last_gemini_call = now  # Update timestamp only if successful
+            except Exception as e:
+                gemini_feedback = "⚠️ Gemini error: try again shortly."
+                print("Gemini error:", e)
 
         # DEBUG
         print("📡 Gemini prompt sent:", user_prompt)
